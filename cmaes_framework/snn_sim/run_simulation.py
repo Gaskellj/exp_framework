@@ -67,7 +67,7 @@ def group_list(flat_list: list, n: int) -> list:
     return [list(flat_list[i:i+n]) for i in range(0, len(flat_list), n)]
 
 def input_scaling_2(init_corners, cur_corners):
-    return ((init_corners - cur_corners) / init_corners)
+    return (init_corners/cur_corners)
 
 def run(iters, genome, mode, vid_name=None, vid_path=None):
     """
@@ -135,8 +135,9 @@ def run(iters, genome, mode, vid_name=None, vid_path=None):
         if i == 0:
             init_corner_distances = corner_distances
 
+        scaled = input_scaling_2(init_corner_distances, corner_distances)
         # Use the normalized distances as input
-        action, spikes, levels = snn_controller.get_lengths(input_scaling_2(init_corner_distances, corner_distances))
+        action, spikes, levels = snn_controller.get_lengths(scaled)
 
         spike_trains.append(spikes)
         levels_log.append(levels)

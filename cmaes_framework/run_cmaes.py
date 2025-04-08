@@ -18,7 +18,7 @@ import argparse
 from datetime import datetime
 from pathlib import Path
 import pandas as pd
-from cmaes import CMA
+from cmaes import CMAwM
 import numpy as np
 from snn_sim import run_simulation
 import os
@@ -87,8 +87,24 @@ def run(mode, gens, sigma_val):
 
     pd.DataFrame(columns=csv_header).to_csv(csv_path, index=False)
 
+    bounds = np.zeros((SNN_INPUT_SHAPE, 2))
+    steps = np.ones(SNN_INPUT_SHAPE) * sigma_val
+
+    for i in range(SNN_INPUT_SHAPE):
+        if (i+1) % 3 == 0:
+            bounds[i] = [0.0, 100] # bias: strictly positive
+            steps[i] = (sigma_val / 10) * 2 # allow quicker changes for biases
+        else:
+            bounds[i] = [-1.0, 1.0]
+
     # Init CMA
-    optimizer = CMA(mean=np.array(MEAN_ARRAY), sigma=sigma_val, population_size=12)
+    optimizer = CMAwM(
+    mean=np.array(MEAN_ARRAY),
+    sigma=sigma_val,
+    population_size=50,
+    bounds=bounds,
+    steps=steps
+    )
 
     best_fitness_so_far = run_simulation.FITNESS_OFFSET
 
@@ -98,9 +114,9 @@ def run(mode, gens, sigma_val):
 
         # Run individuals
         for _ in range(optimizer.population_size):
-            x = optimizer.ask() # Ask cmaes for a genome
-            fitness, _, _ = run_simulation.run(NUM_ITERS, x, "h") # get fitness
-            solutions.append((x, fitness))
+            x_for_eval, x_for_tell = optimizer.ask() # Ask cmaes for a genome
+            fitness, _, _ = run_simulation.run(NUM_ITERS, x_for_eval, "h") # get fitness
+            solutions.append((x_for_tell, fitness))
 
         optimizer.tell(solutions) # Tell cmaes about population
 
@@ -145,7 +161,7 @@ if __name__ == "__main__":
                         default=500)
     parser.add_argument('--sigma',
                         type=float,
-                        default=0.1,
+                        default=0.2,
                         help='sigma value for cma-es')
     args = parser.parse_args()
 

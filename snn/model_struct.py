@@ -6,7 +6,7 @@ import numpy as np
 from snn.ring_buffer import RingBuffer
 
 # Constants
-SPIKE_DECAY = 0.1
+SPIKE_DECAY = 0.005
 MAX_BIAS = 1
 MAX_FIRELOG_SIZE = 200
 
@@ -19,13 +19,16 @@ class SpikyNode:
     def __init__(self, size):
         # a list of weights and a bias (last item in the list)
         self._weights = np.random.uniform(-0.3, 0.3, (size + 1))
-        self.level = -0.1  # activation level
+        self.level = 0.0  # activation level
         self.firelog = RingBuffer(
             MAX_FIRELOG_SIZE)  # tracks whether the neuron fired or not
         self.levels_log = []
 
     def compute(self, inputs):
         """Compute the neuron's output based on inputs."""
+
+        if self.level < 0:
+            self.level = 0
 
         self.level *= (1 - SPIKE_DECAY)
 
@@ -36,13 +39,17 @@ class SpikyNode:
 
         weighted_sum = sum(inputs[i] * self._weights[i]
                            for i in range(len(inputs)))
-        self.level += weighted_sum
+        
+        if self.level != -np.inf: # only needed when resetting to -np.inf
+            self.level += weighted_sum
+        else:
+            self.level = weighted_sum
 
         self.levels_log.append(self.level)
 
         if self.level >= self.get_bias():
             # print("Fired --> activation level reset to 0.0\n")
-            self.level = -0.1
+            self.level = 0.0
             self.firelog.add(1)
             return 1.0, self.level
         # print("\n")
@@ -65,7 +72,6 @@ class SpikyNode:
             print("Weight size mismatch in node")
         else:
             self._weights = input_weights.copy()
-            #self._weights[:-1] = list(map(lambda x: abs(x), self._weights[:-1]))
             # self._weights = input_weights.copy()
 
     def set_bias(self, val):
