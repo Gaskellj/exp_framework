@@ -87,8 +87,20 @@ def run(mode, gens, sigma_val):
 
     pd.DataFrame(columns=csv_header).to_csv(csv_path, index=False)
 
+    # Perhaps try bounds again? doesn't seem to be doing anything
+    # bounds = [(-1, 1)] * SNN_INPUT_SHAPE
+    # for i in range(len(bounds)):
+    #    if (i-1) % 3 == 0:
+    #        bounds[i] = (0, 100)
+
+
     # Init CMA
-    optimizer = CMA(mean=np.array(MEAN_ARRAY), sigma=sigma_val, population_size=12)
+    optimizer = CMA(
+    mean=np.array(MEAN_ARRAY),
+    sigma=sigma_val,
+    population_size=12,
+    lr_adapt=True
+    )
 
     best_fitness_so_far = run_simulation.FITNESS_OFFSET
 
@@ -145,7 +157,7 @@ if __name__ == "__main__":
                         default=500)
     parser.add_argument('--sigma',
                         type=float,
-                        default=0.1,
+                        default=3,
                         help='sigma value for cma-es')
     args = parser.parse_args()
 
