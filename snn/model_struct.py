@@ -19,7 +19,7 @@ class SpikyNode:
     def __init__(self, size):
         # a list of weights and a bias (last item in the list)
         self._weights = np.random.uniform(-0.3, 0.3, (size + 1))
-        self.level = -0.1  # activation level
+        self.level = 0.0  # activation level
         self.firelog = RingBuffer(
             MAX_FIRELOG_SIZE)  # tracks whether the neuron fired or not
         self.levels_log = []
@@ -36,17 +36,25 @@ class SpikyNode:
 
         weighted_sum = sum(inputs[i] * self._weights[i]
                            for i in range(len(inputs)))
-        self.level += weighted_sum
+        
+        self.level = weighted_sum
+        
+        # Uncomment the following if the levels are set to -inf
+        # if self.level == -np.inf:
+        #    self.level = weighted_sum
+        # else:
+        #    self.level += weighted_sum
 
         self.levels_log.append(self.level)
 
         if self.level >= self.get_bias():
             # print("Fired --> activation level reset to 0.0\n")
-            self.level = -0.1
+            self.level = 0.0
             self.firelog.add(1)
             return 1.0, self.level
         # print("\n")
         self.firelog.add(0)
+
         return 0.0, self.level
 
     def duty_cycle(self, window=100):
@@ -66,6 +74,7 @@ class SpikyNode:
         else:
             self._weights = input_weights.copy()
             #self._weights[:-1] = list(map(lambda x: abs(x), self._weights[:-1]))
+            self._weights[-1] = abs(self._weights[-1])
             # self._weights = input_weights.copy()
 
     def set_bias(self, val):
