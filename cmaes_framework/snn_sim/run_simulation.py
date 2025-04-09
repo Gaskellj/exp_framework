@@ -25,12 +25,11 @@ ROBOT_SPAWN_Y = 0
 ACTUATOR_MIN_LEN = 0.6
 ACTUATOR_MAX_LEN = 1.6
 FPS = 50
-MODE = "v" # "headless", "screen", or "video"
 
-FITNESS_OFFSET = 100
+FITNESS_OFFSET = 200
 
 # Files
-ENV_FILENAME = "bigger_platform.json"
+ENV_FILENAME = "biggest_platform.json"
 ROBOT_FILENAME = "bestbot.json"
 THIS_DIR = os.path.dirname(os.path.realpath(__file__))
 
@@ -50,7 +49,8 @@ def create_video(source, output_name, vid_path, fps=FPS):
                           cv2.VideoWriter_fourcc(*'mp4v'),
                           fps, (source[0].shape[1], source[0].shape[0]))
     for frame in source:
-        out.write(frame)
+        frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+        out.write(frame_bgr)
     out.release()
 
 def group_list(flat_list: list, n: int) -> list:
@@ -68,6 +68,13 @@ def group_list(flat_list: list, n: int) -> list:
 
 def input_scaling_2(init_corners, cur_corners):
     return ((init_corners - cur_corners) / init_corners)
+
+def input_scaling_3(last_corners, cur_corners):
+    return (last_corners - cur_corners)
+
+def input_scaling_4(last_corners, cur_corners):
+    epsilon = 1e-6
+    return (1 / ((last_corners - cur_corners) + epsilon))
 
 def run(iters, genome, mode, vid_name=None, vid_path=None):
     """
@@ -129,14 +136,23 @@ def run(iters, genome, mode, vid_name=None, vid_path=None):
         # Get point mass locations
         raw_pm_pos = sim.object_pos_at_time(sim.get_time(), "robot")
 
+        if i != 0:
+            last_distances = corner_distances
+        else:
+            last_distances = np.array(morphology.get_corner_distances(raw_pm_pos))
+
         # Get current corner distances
         corner_distances = np.array(morphology.get_corner_distances(raw_pm_pos))
 
         if i == 0:
             init_corner_distances = corner_distances
 
+
         # Use the normalized distances as input
-        action, spikes, levels = snn_controller.get_lengths(input_scaling_2(init_corner_distances, corner_distances))
+        # action, spikes, levels = snn_controller.get_lengths(corner_distances)
+        # action, spikes, levels = snn_controller.get_lengths(input_scaling_2(init_corner_distances, corner_distances))
+        # action, spikes, levels = snn_controller.get_lengths(input_scaling_3(last_distances, corner_distances))
+        action, spikes, levels = snn_controller.get_lengths(input_scaling_4(last_distances, corner_distances))
 
         spike_trains.append(spikes)
         levels_log.append(levels)
