@@ -37,7 +37,7 @@ class SpikyNode:
         weighted_sum = sum(inputs[i] * self._weights[i]
                            for i in range(len(inputs)))
         
-        self.level = weighted_sum
+        self.level += weighted_sum
         
         # Uncomment the following if the levels are set to -inf
         # if self.level == -np.inf:
@@ -54,6 +54,9 @@ class SpikyNode:
             return 1.0, self.level
         # print("\n")
         self.firelog.add(0)
+
+        # if self.level < 0:
+        #    self.level = 0.0 # Don't allow negative levels???
 
         return 0.0, self.level
 
@@ -74,7 +77,9 @@ class SpikyNode:
         else:
             self._weights = input_weights.copy()
             #self._weights[:-1] = list(map(lambda x: abs(x), self._weights[:-1]))
-            self._weights[-1] = abs(self._weights[-1])
+            #self._weights[-1] = abs(self._weights[-1]) # ATP we have to do this if we're going to reset the level of the SNN to 0
+            # without abs the biases, resetting the value to 0 perhaps increases the chance of it going again?
+            # does this really matter though? the level is next evaluated after a sum of weighted biases is added
             # self._weights = input_weights.copy()
 
     def set_bias(self, val):
