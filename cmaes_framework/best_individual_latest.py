@@ -90,6 +90,8 @@ def visualize_best(graphs, mode, filename="latest.csv"):
             genome = row.values.tolist()[0][GENOME_START_INDEX:]
             generation = row.values.tolist()[0][0]
 
+            print(f"Current best fitness = {best_fitness}")
+
             # Make video directory if we're making a video.
             if mode in ["v", "b"]:
                 os.makedirs("videos", exist_ok=True)

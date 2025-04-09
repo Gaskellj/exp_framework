@@ -21,6 +21,9 @@ import pandas as pd
 from cmaes import CMA
 import numpy as np
 from snn_sim import run_simulation
+import multiprocessing
+import threading
+from concurrent.futures import ProcessPoolExecutor
 import os
 import sys
 
@@ -145,6 +148,24 @@ def run(mode, gens, sigma_val):
 
             run_simulation.run(NUM_ITERS, best_sol[GENOME_INDEX], mode, vid_name, vid_path)
 
+def task(name, mode, gens, sigma):
+    """Task function that runs multiple threads within a multiprocessing process."""
+    print(f"Process {name}: starting")
+
+    # Create and start multiple threads
+    threads = []
+    for i in range(3):  # 3 threads per process
+        thread = threading.Thread(target=run, args=(mode, gens, sigma))
+        thread.start()
+        threads.append(thread)
+
+    # Ensure all threads complete before the process exits
+    for thread in threads:
+        thread.join()
+
+    print(f"Process {name}: finishing")
+    return name  # Return the process name
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description='RL')
     parser.add_argument(
@@ -154,11 +175,25 @@ if __name__ == "__main__":
     parser.add_argument('--gens',
                         type=int,
                         help='number of generations to run',
-                        default=500)
+                        default=100)
     parser.add_argument('--sigma',
                         type=float,
                         default=3,
                         help='sigma value for cma-es')
     args = parser.parse_args()
 
-    run(args.mode, args.gens, args.sigma)
+    num_workers = multiprocessing.cpu_count()
+
+    # Use ProcessPoolExecutor instead of multiprocessing.Pool
+    with ProcessPoolExecutor(max_workers=num_workers) as executor:
+        futures = {executor.submit(task, name, args.mode, args.gens, args.sigma): name
+                   for name in ["A", "B", "C"]}
+
+        for future in futures:
+            try:
+                result = future.result()  # Wait for process completion
+                print(f"Completed process: {result}")
+            except Exception as e:
+                print(f"Process {futures[future]} failed with error: {e}")
+
+    print("All processes completed.")
