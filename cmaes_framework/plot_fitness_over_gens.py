@@ -49,7 +49,7 @@ if __name__ == "__main__":
     parser.add_argument(
         '--filename',  #headless, screen, video, both h, s, v, b
         help='name of csv file',
-        default="output.csv")
+        default="latest.csv")
 
     args = parser.parse_args()
 
