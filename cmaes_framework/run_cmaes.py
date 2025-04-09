@@ -27,6 +27,9 @@ from concurrent.futures import ProcessPoolExecutor
 import os
 import sys
 
+THREADS = 2
+CORES = 3
+
 def is_windows():
     """
     Checks if the operating system is Windows.
@@ -154,7 +157,7 @@ def task(name, mode, gens, sigma):
 
     # Create and start multiple threads
     threads = []
-    for i in range(3):  # 3 threads per process
+    for i in range(THREADS):  # 3 threads per process
         thread = threading.Thread(target=run, args=(mode, gens, sigma))
         thread.start()
         threads.append(thread)
@@ -186,8 +189,11 @@ if __name__ == "__main__":
 
     # Use ProcessPoolExecutor instead of multiprocessing.Pool
     with ProcessPoolExecutor(max_workers=num_workers) as executor:
+
+        threads = [f"T{i}" for i in range(1, CORES + 1)]
+
         futures = {executor.submit(task, name, args.mode, args.gens, args.sigma): name
-                   for name in ["A", "B", "C"]}
+                   for name in threads}
 
         for future in futures:
             try:

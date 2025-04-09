@@ -76,6 +76,13 @@ def input_scaling_4(last_corners, cur_corners):
     epsilon = 1e-6
     return (1 / ((last_corners - cur_corners) + epsilon))
 
+def input_scaling_5(last_corners, cur_corners):
+
+    epsilon = 1e-6
+    derivative = 1 / ((last_corners - cur_corners) + epsilon)
+
+    return derivative + 5
+
 def run(iters, genome, mode, vid_name=None, vid_path=None):
     """
     Runs a single simulation of a given genome.
@@ -152,7 +159,8 @@ def run(iters, genome, mode, vid_name=None, vid_path=None):
         # action, spikes, levels = snn_controller.get_lengths(corner_distances)
         # action, spikes, levels = snn_controller.get_lengths(input_scaling_2(init_corner_distances, corner_distances))
         # action, spikes, levels = snn_controller.get_lengths(input_scaling_3(last_distances, corner_distances))
-        action, spikes, levels = snn_controller.get_lengths(input_scaling_4(last_distances, corner_distances))
+        # action, spikes, levels = snn_controller.get_lengths(input_scaling_4(last_distances, corner_distances))
+        action, spikes, levels = snn_controller.get_lengths(input_scaling_5(last_distances, corner_distances))
 
         spike_trains.append(spikes)
         levels_log.append(levels)

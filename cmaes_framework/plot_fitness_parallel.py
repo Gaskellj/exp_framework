@@ -9,12 +9,11 @@ The CSV file format is as follows:
     cols > 2: genome values
 
 Author: James Gaskell
-March 18th, 2025
+April 9th, 2025
 """
 
 import csv
 import argparse
-from pathlib import Path
 import matplotlib.pyplot as plt
 import numpy as np
 from collections import defaultdict
