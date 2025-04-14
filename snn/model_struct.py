@@ -27,6 +27,9 @@ class SpikyNode:
     def compute(self, inputs):
         """Compute the neuron's output based on inputs."""
 
+        if self.level < 0:
+            self.level = 0.0
+
         self.level *= (1 - SPIKE_DECAY)
 
         if (len(inputs) + 1) != len(self._weights):
@@ -37,7 +40,7 @@ class SpikyNode:
         weighted_sum = sum(inputs[i] * self._weights[i]
                            for i in range(len(inputs)))
         
-        self.level = weighted_sum
+        self.level += weighted_sum
         
         # Uncomment the following if the levels are set to -inf
         # if self.level == -np.inf:
