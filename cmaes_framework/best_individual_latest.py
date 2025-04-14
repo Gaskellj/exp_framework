@@ -43,30 +43,6 @@ def wait_for_file(path):
         time.sleep(5)
 
 
-"""
-Visualize the best individual so far during a run, pulling from latest.csv.
-
-Author: James Gaskell, Thomas Breimer
-April 3rd, 2025
-"""
-
-import os
-from pathlib import Path
-import pandas
-import argparse
-import pathlib
-import numpy as np
-from matplotlib import pyplot as plt
-from snn_sim.run_simulation import run
-
-ITERS = 1000
-ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-PARENTDIR = Path(__file__).parent.resolve()
-GENOME_START_INDEX = 3
-FILEFOLDER = "data"
-
-
 
 def visualize_best(graphs, mode, filename="latest.csv"):
     """
